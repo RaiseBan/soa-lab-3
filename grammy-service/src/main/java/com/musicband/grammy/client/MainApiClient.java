@@ -21,7 +21,7 @@ public class MainApiClient {
 
     public MainApiClient() {
         // Читаем из system property или используем дефолт
-        this.mainApiUrl = System.getProperty("main.api.url", "http://localhost:8080/api/v1");
+        this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
         // Настройка клиента с Apache HttpClient и таймаутами
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
