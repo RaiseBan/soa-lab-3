@@ -54,13 +54,13 @@ public class MusicBandService {
      */
     public Optional<MusicBand> updateBand(Integer id, @Valid @NotNull MusicBand updatedBand) {
         Optional<MusicBand> existing = repository.findById(id);
-        
+
         if (existing.isEmpty()) {
             return Optional.empty();
         }
 
         MusicBand band = existing.get();
-        
+
         // Update all fields except id and creationDate
         band.setName(updatedBand.getName());
         band.setCoordinates(updatedBand.getCoordinates());
@@ -77,34 +77,43 @@ public class MusicBandService {
      */
     public Optional<MusicBand> patchBand(Integer id, MusicBand patchData) {
         Optional<MusicBand> existing = repository.findById(id);
-        
+
         if (existing.isEmpty()) {
             return Optional.empty();
         }
 
         MusicBand band = existing.get();
-        
-        // Update only provided fields
-        if (patchData.getName() != null && !patchData.getName().isBlank()) {
+
+        // Update only provided fields with null-safety
+        if (patchData.getName() != null) {
+            if (patchData.getName().isBlank()) {
+                throw new IllegalArgumentException("Name cannot be empty");
+            }
             band.setName(patchData.getName());
         }
-        
+
         if (patchData.getCoordinates() != null) {
             band.setCoordinates(patchData.getCoordinates());
         }
-        
+
         if (patchData.getNumberOfParticipants() != null) {
+            if (patchData.getNumberOfParticipants() < 1) {
+                throw new IllegalArgumentException("Number of participants must be greater than 0");
+            }
             band.setNumberOfParticipants(patchData.getNumberOfParticipants());
         }
-        
+
         if (patchData.getAlbumsCount() != null) {
+            if (patchData.getAlbumsCount() < 1) {
+                throw new IllegalArgumentException("Albums count must be greater than 0");
+            }
             band.setAlbumsCount(patchData.getAlbumsCount());
         }
-        
+
         if (patchData.getGenre() != null) {
             band.setGenre(patchData.getGenre());
         }
-        
+
         if (patchData.getLabel() != null) {
             band.setLabel(patchData.getLabel());
         }
@@ -125,7 +134,7 @@ public class MusicBandService {
     public AverageParticipantsResponse getAverageParticipants() {
         Double average = repository.getAverageParticipants();
         long totalBands = repository.count(null);
-        
+
         return new AverageParticipantsResponse(average, (int) totalBands);
     }
 }

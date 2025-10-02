@@ -52,6 +52,25 @@ public class MusicBandResource {
             }
 
             BandsResponse response = service.getAllBands(page, size, sort, filters);
+
+
+            System.out.println("=== DEBUG Bands Response ===");
+            System.out.println("Total bands: " + response.getBands().size());
+            System.out.println("Total elements: " + response.getTotalElements());
+
+            for (int i = 0; i < response.getBands().size(); i++) {
+                MusicBand band = response.getBands().get(i);
+                System.out.println("Band " + i + ":");
+                System.out.println("  ID: " + band.getId());
+                System.out.println("  Name: " + band.getName());
+                System.out.println("  CreationDate: " + band.getCreationDate());
+                System.out.println("  CreationDate is null: " + (band.getCreationDate() == null));
+                if (band.getCreationDate() != null) {
+                    System.out.println("  CreationDate class: " + band.getCreationDate().getClass());
+                    System.out.println("  CreationDate string: " + band.getCreationDate().toString());
+                }
+            }
+
             return Response.ok(response).build();
 
         } catch (IllegalArgumentException e) {

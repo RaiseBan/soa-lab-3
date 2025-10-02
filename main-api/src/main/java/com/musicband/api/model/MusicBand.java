@@ -1,5 +1,6 @@
 package com.musicband.api.model;
 
+import com.musicband.api.adapter.LocalDateAdapter;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -9,6 +10,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,6 +47,7 @@ public class MusicBand {
 
     @Column(nullable = false, updatable = false)
     @XmlElement
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate creationDate;
 
     @NotNull(message = "Number of participants cannot be null")
