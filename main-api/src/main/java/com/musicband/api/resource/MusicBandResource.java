@@ -13,21 +13,11 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.*;
 
-
-
 /**
  * REST Resource for MusicBand endpoints
  */
 @Path("/bands")
 public class MusicBandResource {
-
-    @POST
-    @Path("/test")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response testPost() {
-        System.out.println("=== TEST POST вызван ===");
-        return Response.ok("POST works!").build();
-    }
 
     @Inject
     private MusicBandService service;
@@ -43,10 +33,7 @@ public class MusicBandResource {
             @QueryParam("sort") List<String> sort,
             @QueryParam("filter") List<String> filter) {
 
-        System.out.println("=== GET /bands вызван === uppp");
-
         try {
-            // Validate page and size
             if (page < 0) {
                 return createErrorResponse(422, "Validation failed",
                         "Page number must be non-negative");
@@ -57,7 +44,6 @@ public class MusicBandResource {
                         "Page size must be between 1 and 100");
             }
 
-            // Parse filters
             Map<String, String> filters = new HashMap<>();
             if (filter != null) {
                 for (int i = 0; i < filter.size(); i++) {
@@ -83,9 +69,6 @@ public class MusicBandResource {
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_XML)
     public Response createBand(@Valid MusicBand band) {
-        System.out.println("=== POST /bands вызван ===");
-        System.out.println("Band name: " + (band != null ? band.getName() : "null"));
-
         try {
             if (band == null) {
                 return createErrorResponse(400, "Invalid request body",
@@ -108,6 +91,7 @@ public class MusicBandResource {
      */
     @GET
     @Path("/{id}")
+    @Produces(MediaType.APPLICATION_XML)
     public Response getBandById(@PathParam("id") Integer id) {
         try {
             if (id == null || id < 1) {
@@ -135,6 +119,8 @@ public class MusicBandResource {
      */
     @PUT
     @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_XML)
     public Response updateBand(@PathParam("id") Integer id, @Valid MusicBand band) {
         try {
             if (id == null || id < 1) {
@@ -169,6 +155,8 @@ public class MusicBandResource {
      */
     @PATCH
     @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.APPLICATION_XML)
     public Response patchBand(@PathParam("id") Integer id, MusicBand patchData) {
         try {
             if (id == null || id < 1) {
@@ -203,6 +191,7 @@ public class MusicBandResource {
      */
     @DELETE
     @Path("/{id}")
+    @Produces(MediaType.APPLICATION_XML)
     public Response deleteBand(@PathParam("id") Integer id) {
         try {
             if (id == null || id < 1) {
@@ -230,6 +219,7 @@ public class MusicBandResource {
      */
     @GET
     @Path("/statistics/average-participants")
+    @Produces(MediaType.APPLICATION_XML)
     public Response getAverageParticipants() {
         try {
             AverageParticipantsResponse response = service.getAverageParticipants();
