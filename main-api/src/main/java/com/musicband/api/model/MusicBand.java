@@ -1,108 +1,75 @@
 package com.musicband.api.model;
 
-import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDate;
 
 /**
- * MusicBand model
+ * MusicBand entity
  */
+@Entity
+@Table(name = "music_bands")
 @XmlRootElement(name = "musicBand")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MusicBand {
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
     private Integer id;
-    
+
+    @NotBlank(message = "Name cannot be null or empty")
+    @Column(nullable = false)
     @XmlElement(required = true)
     private String name;
-    
+
+    @Embedded
+    @Valid
+    @NotNull(message = "Coordinates cannot be null")
     @XmlElement(required = true)
     private Coordinates coordinates;
-    
+
+    @Column(nullable = false, updatable = false)
     @XmlElement
     private LocalDate creationDate;
-    
+
+    @NotNull(message = "Number of participants cannot be null")
+    @Min(value = 1, message = "Number of participants must be greater than 0")
+    @Column(nullable = false)
     @XmlElement(required = true)
     private Integer numberOfParticipants;
-    
+
+    @Min(value = 1, message = "Albums count must be greater than 0 if specified")
     @XmlElement
     private Integer albumsCount;
-    
+
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Genre cannot be null")
+    @Column(nullable = false)
     @XmlElement(required = true)
     private MusicGenre genre;
-    
+
+    @Embedded
+    @Valid
     @XmlElement
     private Label label;
-    
-    public MusicBand() {
-    }
-    
-    // Getters and Setters
-    
-    public Integer getId() {
-        return id;
-    }
-    
-    public void setId(Integer id) {
-        this.id = id;
-    }
-    
-    public String getName() {
-        return name;
-    }
-    
-    public void setName(String name) {
-        this.name = name;
-    }
-    
-    public Coordinates getCoordinates() {
-        return coordinates;
-    }
-    
-    public void setCoordinates(Coordinates coordinates) {
-        this.coordinates = coordinates;
-    }
-    
-    public LocalDate getCreationDate() {
-        return creationDate;
-    }
-    
-    public void setCreationDate(LocalDate creationDate) {
-        this.creationDate = creationDate;
-    }
-    
-    public Integer getNumberOfParticipants() {
-        return numberOfParticipants;
-    }
-    
-    public void setNumberOfParticipants(Integer numberOfParticipants) {
-        this.numberOfParticipants = numberOfParticipants;
-    }
-    
-    public Integer getAlbumsCount() {
-        return albumsCount;
-    }
-    
-    public void setAlbumsCount(Integer albumsCount) {
-        this.albumsCount = albumsCount;
-    }
-    
-    public MusicGenre getGenre() {
-        return genre;
-    }
-    
-    public void setGenre(MusicGenre genre) {
-        this.genre = genre;
-    }
-    
-    public Label getLabel() {
-        return label;
-    }
-    
-    public void setLabel(Label label) {
-        this.label = label;
+
+    @PrePersist
+    protected void onCreate() {
+        creationDate = LocalDate.now();
     }
 }

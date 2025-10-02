@@ -1,41 +1,29 @@
 package com.musicband.api.model;
 
-import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.persistence.Embeddable;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Coordinates model
+ * Coordinates model - embedded in MusicBand
  */
+@Embeddable
 @XmlRootElement(name = "coordinates")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Coordinates {
-    
+
     private Double x;
-    
-    private Long y; // Required, max 945
-    
-    public Coordinates() {
-    }
-    
-    public Coordinates(Double x, Long y) {
-        this.x = x;
-        this.y = y;
-    }
-    
-    public Double getX() {
-        return x;
-    }
-    
-    public void setX(Double x) {
-        this.x = x;
-    }
-    
-    public Long getY() {
-        return y;
-    }
-    
-    public void setY(Long y) {
-        this.y = y;
-    }
+
+    @NotNull(message = "Y coordinate cannot be null")
+    @Max(value = 945, message = "Y coordinate must not exceed 945")
+    private Long y;
 }

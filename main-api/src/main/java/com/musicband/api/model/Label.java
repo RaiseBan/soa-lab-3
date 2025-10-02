@@ -1,30 +1,25 @@
 package com.musicband.api.model;
 
-import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.persistence.Embeddable;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Label model
+ * Label model - embedded in MusicBand
  */
+@Embeddable
 @XmlRootElement(name = "label")
 @XmlAccessorType(XmlAccessType.FIELD)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Label {
-    
-    private Double sales; // Must be > 0 if specified
-    
-    public Label() {
-    }
-    
-    public Label(Double sales) {
-        this.sales = sales;
-    }
-    
-    public Double getSales() {
-        return sales;
-    }
-    
-    public void setSales(Double sales) {
-        this.sales = sales;
-    }
+
+    @Positive(message = "Sales must be greater than 0")
+    private Double sales;
 }
