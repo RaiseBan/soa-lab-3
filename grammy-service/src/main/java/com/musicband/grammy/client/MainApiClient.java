@@ -20,13 +20,13 @@ public class MainApiClient {
     private final Client client;
 
     public MainApiClient() {
-        // Читаем из system property или используем дефолт
+        
         this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
-        // Настройка клиента с Apache HttpClient и таймаутами
+        
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
-        config.property(ClientProperties.CONNECT_TIMEOUT, 5000); // Таймаут подключения 5 сек
-        config.property(ClientProperties.READ_TIMEOUT, 10000);   // Таймаут чтения 10 сек
+        config.property(ClientProperties.CONNECT_TIMEOUT, 5000); 
+        config.property(ClientProperties.READ_TIMEOUT, 10000);   
         this.client = ClientBuilder.newClient(config);
         LOGGER.info("MainApiClient initialized with URL: " + mainApiUrl);
     }

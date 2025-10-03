@@ -6,6 +6,16 @@
          version="5.0">
 
     <display-name>Music Band Management API</display-name>
+    <!-- Настройка для SPA роутинга -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/index.html</location>
+    </error-page>
+
+    <!-- Приветственные файлы -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
 
     <!-- Security constraint для требования HTTPS -->
 <!--    <security-constraint>-->

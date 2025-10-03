@@ -14,9 +14,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-/**
- * Single entity - represents a band's single
- */
+
 @Entity
 @Table(name = "singles")
 @XmlRootElement(name = "single")

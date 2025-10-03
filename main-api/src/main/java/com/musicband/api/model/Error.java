@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Error response model
- */
+
 @XmlRootElement(name = "error")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data

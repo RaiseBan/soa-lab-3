@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Repository for MusicBand entity operations
- */
+
 @ApplicationScoped
 @Transactional
 public class MusicBandRepository {
@@ -23,33 +21,25 @@ public class MusicBandRepository {
     @PersistenceContext(unitName = "musicBandPU")
     private EntityManager entityManager;
 
-    /**
-     * Create new music band
-     */
+    
     public MusicBand create(MusicBand band) {
         entityManager.persist(band);
         entityManager.flush();
         return band;
     }
 
-    /**
-     * Find band by ID
-     */
+    
     public Optional<MusicBand> findById(Integer id) {
         MusicBand band = entityManager.find(MusicBand.class, id);
         return Optional.ofNullable(band);
     }
 
-    /**
-     * Update existing band
-     */
+    
     public MusicBand update(MusicBand band) {
         return entityManager.merge(band);
     }
 
-    /**
-     * Delete band by ID
-     */
+    
     public boolean delete(Integer id) {
         MusicBand band = entityManager.find(MusicBand.class, id);
         if (band != null) {
@@ -59,21 +49,19 @@ public class MusicBandRepository {
         return false;
     }
 
-    /**
-     * Find all bands with pagination, filtering and sorting
-     */
+    
     public List<MusicBand> findAll(int page, int size, List<String> sortFields, Map<String, String> filters) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<MusicBand> cq = cb.createQuery(MusicBand.class);
         Root<MusicBand> root = cq.from(MusicBand.class);
 
-        // Apply filters
+        
         List<Predicate> predicates = buildPredicates(cb, root, filters);
         if (!predicates.isEmpty()) {
             cq.where(cb.and(predicates.toArray(new Predicate[0])));
         }
 
-        // Apply sorting
+        
         List<Order> orders = buildOrders(cb, root, sortFields);
         if (!orders.isEmpty()) {
             cq.orderBy(orders);
@@ -86,9 +74,7 @@ public class MusicBandRepository {
         return query.getResultList();
     }
 
-    /**
-     * Count total bands with filters
-     */
+    
     public long count(Map<String, String> filters) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> cq = cb.createQuery(Long.class);
@@ -96,7 +82,7 @@ public class MusicBandRepository {
 
         cq.select(cb.count(root));
 
-        // Apply filters
+        
         List<Predicate> predicates = buildPredicates(cb, root, filters);
         if (!predicates.isEmpty()) {
             cq.where(cb.and(predicates.toArray(new Predicate[0])));
@@ -105,9 +91,7 @@ public class MusicBandRepository {
         return entityManager.createQuery(cq).getSingleResult();
     }
 
-    /**
-     * Calculate average number of participants
-     */
+    
     public Double getAverageParticipants() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Double> cq = cb.createQuery(Double.class);
@@ -119,9 +103,7 @@ public class MusicBandRepository {
         return result != null ? result : 0.0;
     }
 
-    /**
-     * Build predicates for filtering
-     */
+    
     private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<MusicBand> root, Map<String, String> filters) {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -143,20 +125,18 @@ public class MusicBandRepository {
                     predicates.add(predicate);
                 }
             } catch (Exception e) {
-                // Skip invalid filters
+                
             }
         }
 
         return predicates;
     }
 
-    /**
-     * Create predicate based on field, operator and value
-     */
+    
     private Predicate createPredicate(CriteriaBuilder cb, Root<MusicBand> root, 
                                      String field, String operator, String value) {
         
-        // Handle nested fields (coordinates.x, coordinates.y, label.sales)
+        
         Path<?> path;
         if (field.contains(".")) {
             String[] fieldParts = field.split("\\.");
@@ -190,9 +170,7 @@ public class MusicBandRepository {
         }
     }
 
-    /**
-     * Parse string value to appropriate type
-     */
+    
     private Object parseValue(Class<?> type, String value) {
         if (type == Integer.class) {
             return Integer.parseInt(value);
@@ -206,9 +184,7 @@ public class MusicBandRepository {
         return value;
     }
 
-    /**
-     * Build orders for sorting
-     */
+    
     private List<Order> buildOrders(CriteriaBuilder cb, Root<MusicBand> root, List<String> sortFields) {
         List<Order> orders = new ArrayList<>();
 
@@ -223,7 +199,7 @@ public class MusicBandRepository {
             String field = parts[0];
             String direction = parts.length > 1 ? parts[1] : "asc";
 
-            // Handle nested fields
+            
             Path<?> path;
             if (field.contains(".")) {
                 String[] fieldParts = field.split("\\.");

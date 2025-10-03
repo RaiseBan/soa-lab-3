@@ -6,9 +6,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 
-/**
- * Repository for Participant entity operations
- */
+
 @ApplicationScoped
 @Transactional
 public class ParticipantRepository {

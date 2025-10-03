@@ -12,9 +12,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-/**
- * Participant entity - represents a band member
- */
+
 @Entity
 @Table(name = "participants")
 @XmlRootElement(name = "participant")

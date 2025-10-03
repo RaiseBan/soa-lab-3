@@ -11,9 +11,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-/**
- * REST Resource for Grammy Service endpoints
- */
+
 @Path("/band")
 public class GrammyResource {
 
@@ -23,9 +21,7 @@ public class GrammyResource {
     @Inject
     private ParticipantService participantService;
 
-    /**
-     * POST /band/{band-id}/singles/add - Add single to band
-     */
+    
     @POST
     @Path("/{band-id}/singles/add")
     @Consumes(MediaType.APPLICATION_XML)
@@ -63,9 +59,7 @@ public class GrammyResource {
         }
     }
 
-    /**
-     * POST /band/{band-id}/participants/add - Add participant to band
-     */
+    
     @POST
     @Path("/{band-id}/participants/add")
     @Consumes(MediaType.APPLICATION_XML)
@@ -104,9 +98,7 @@ public class GrammyResource {
         }
     }
 
-    /**
-     * Helper method to create error responses
-     */
+    
     private Response createErrorResponse(int code, String message, String details) {
         Error error = new Error(code, message, details);
         Response.Status status;

@@ -9,9 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Label model - embedded in MusicBand
- */
+
 @Embeddable
 @XmlRootElement(name = "label")
 @XmlAccessorType(XmlAccessType.FIELD)

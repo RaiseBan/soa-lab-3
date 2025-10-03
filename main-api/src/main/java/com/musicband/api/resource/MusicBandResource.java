@@ -13,18 +13,14 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.*;
 
-/**
- * REST Resource for MusicBand endpoints
- */
+
 @Path("/bands")
 public class MusicBandResource {
 
     @Inject
     private MusicBandService service;
 
-    /**
-     * GET /bands - Get list of bands with pagination, filtering and sorting
-     */
+    
     @GET
     @Produces(MediaType.APPLICATION_XML)
     public Response getBands(
@@ -81,9 +77,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * POST /bands - Create new band
-     */
+    
     @POST
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_XML)
@@ -105,9 +99,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * GET /bands/{id} - Get band by ID
-     */
+    
     @GET
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_XML)
@@ -133,9 +125,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * PUT /bands/{id} - Update band (full update)
-     */
+    
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_XML)
@@ -169,9 +159,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * PATCH /bands/{id} - Partially update band
-     */
+    
     @PATCH
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_XML)
@@ -205,9 +193,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * DELETE /bands/{id} - Delete band
-     */
+    
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_XML)
@@ -233,9 +219,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * GET /bands/statistics/average-participants - Get average participants
-     */
+    
     @GET
     @Path("/statistics/average-participants")
     @Produces(MediaType.APPLICATION_XML)
@@ -250,9 +234,7 @@ public class MusicBandResource {
         }
     }
 
-    /**
-     * Helper method to create error responses
-     */
+    
     private Response createErrorResponse(int code, String message, String details) {
         Error error = new Error(code, message, details);
         Response.Status status;

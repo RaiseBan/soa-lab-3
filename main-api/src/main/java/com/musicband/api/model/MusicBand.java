@@ -17,9 +17,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-/**
- * MusicBand entity
- */
+
 @Entity
 @Table(name = "music_bands")
 @XmlRootElement(name = "musicBand")

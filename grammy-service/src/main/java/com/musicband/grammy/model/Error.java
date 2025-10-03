@@ -9,9 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Error response model for Grammy Service
- */
+
 @XmlRootElement(name = "e")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data

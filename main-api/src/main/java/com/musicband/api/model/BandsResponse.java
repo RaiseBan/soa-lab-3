@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/**
- * Response for bands list with pagination
- */
+
 @XmlRootElement(name = "bandsResponse")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data

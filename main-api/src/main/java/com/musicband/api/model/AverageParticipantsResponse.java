@@ -7,9 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Response for average participants statistics
- */
+
 @XmlRootElement(name = "averageParticipantsResponse")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data

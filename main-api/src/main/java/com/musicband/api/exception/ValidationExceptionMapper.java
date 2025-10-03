@@ -9,9 +9,7 @@ import jakarta.ws.rs.ext.Provider;
 
 import java.util.stream.Collectors;
 
-/**
- * Exception mapper for Bean Validation errors in Main API
- */
+
 @Provider
 public class ValidationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
 
