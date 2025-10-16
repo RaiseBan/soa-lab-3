@@ -49,13 +49,18 @@ public class GrammyResource {
                 return createErrorResponse(404, "Music band not found", e.getMessage());
             }
             return createErrorResponse(422, "Business validation failed", e.getMessage());
-        } catch (Exception e) {
-            if (e.getMessage().contains("Main API")) {
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            if (e.getMessage() != null && e.getMessage().contains("Main API service unavailable")) {
                 return createErrorResponse(503, "Main API service unavailable",
-                        "Unable to connect to Music Band Management API at http://helios:8080/api/v1");
+                        "Unable to connect to Music Band Management API");
             }
             return createErrorResponse(500, "Internal server error",
-                    "An unexpected error occurred: " + e.getMessage());
+                    "An unexpected error occurred while processing the request");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return createErrorResponse(500, "Internal server error",
+                    "An unexpected error occurred while processing the request");
         }
     }
 
@@ -87,14 +92,18 @@ public class GrammyResource {
                 return createErrorResponse(404, "Music band not found", e.getMessage());
             }
             return createErrorResponse(422, "Business validation failed", e.getMessage());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
-            if (e.getMessage().contains("Main API")) {
+            if (e.getMessage() != null && e.getMessage().contains("Main API service unavailable")) {
                 return createErrorResponse(503, "Main API service unavailable",
-                        "Unable to connect to Music Band Management API at http://helios:8080/api/v1");
+                        "Unable to connect to Music Band Management API");
             }
             return createErrorResponse(500, "Internal server error",
-                    "An unexpected error occurred: " + e.getMessage());
+                    "An unexpected error occurred while processing the request");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return createErrorResponse(500, "Internal server error",
+                    "An unexpected error occurred while processing the request");
         }
     }
 

@@ -10,8 +10,15 @@ import jakarta.ws.rs.ext.Provider;
 public class GeneralExceptionMapper implements ExceptionMapper<Exception> {
     @Override
     public Response toResponse(Exception e) {
+        // Логируем для разработчиков
         e.printStackTrace();
-        Error error = new Error(500, "Internal error", e.getMessage());
+
+        // Возвращаем безопасное сообщение без технических деталей Java
+        Error error = new Error(
+                500,
+                "Internal server error",
+                "An unexpected error occurred while processing the request"
+        );
         return Response.status(500).entity(error).build();
     }
 }

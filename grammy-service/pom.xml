@@ -88,7 +88,7 @@
     </dependencies>
 
     <build>
-        <finalName>grammy</finalName>
+        <finalName>ROOT</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -33,7 +34,8 @@ public class MusicBand {
     private Integer id;
 
     @NotBlank(message = "Name cannot be null or empty")
-    @Column(nullable = false)
+    @Size(max = 255, message = "Name cannot exceed 255 characters")
+    @Column(nullable = false, length = 255)
     @XmlElement(required = true)
     private String name;
 
@@ -60,7 +62,7 @@ public class MusicBand {
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Genre cannot be null")
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @XmlElement(required = true)
     private MusicGenre genre;
 

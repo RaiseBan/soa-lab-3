@@ -42,9 +42,12 @@ public class MainApiClient {
                     .get();
             LOGGER.info("Band exists check response status: " + response.getStatus());
             return response.getStatus() == 200;
+        } catch (jakarta.ws.rs.ProcessingException e) {
+            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
+            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
         } catch (Exception e) {
             LOGGER.severe("Error checking band existence for bandId " + bandId + ": " + e.getMessage());
-            return false;
+            throw new RuntimeException("Main API service error: " + e.getMessage());
         } finally {
             if (response != null) {
                 response.close();
@@ -66,8 +69,8 @@ public class MainApiClient {
             if (response.getStatus() == 200) {
                 String xml = response.readEntity(String.class);
                 LOGGER.info("Received XML: " + xml);
-                int nameStart = xml.indexOf("<name>") + 6;
-                int nameEnd = xml.indexOf("</name>");
+                int nameStart = xml.indexOf("<n>") + 3;
+                int nameEnd = xml.indexOf("</n>");
                 if (nameStart > 2 && nameEnd > nameStart) {
                     return xml.substring(nameStart, nameEnd);
                 }
@@ -76,9 +79,12 @@ public class MainApiClient {
             }
             LOGGER.warning("Failed to fetch band name for bandId: " + bandId + ", status: " + response.getStatus());
             return null;
+        } catch (jakarta.ws.rs.ProcessingException e) {
+            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
+            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
         } catch (Exception e) {
             LOGGER.severe("Error fetching band name for bandId " + bandId + ": " + e.getMessage());
-            return null;
+            throw new RuntimeException("Main API service error: " + e.getMessage());
         } finally {
             if (response != null) {
                 response.close();
@@ -112,9 +118,12 @@ public class MainApiClient {
                 LOGGER.warning("PATCH request failed for bandId: " + bandId + ", status: " + response.getStatus() + ", body: " + errorBody);
                 return false;
             }
+        } catch (jakarta.ws.rs.ProcessingException e) {
+            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
+            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
         } catch (Exception e) {
             LOGGER.severe("Error in PATCH request for bandId " + bandId + ": " + e.getMessage());
-            return false;
+            throw new RuntimeException("Main API service error: " + e.getMessage());
         } finally {
             if (response != null) {
                 response.close();
