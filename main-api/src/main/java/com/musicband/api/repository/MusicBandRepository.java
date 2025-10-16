@@ -1,7 +1,6 @@
 package com.musicband.api.repository;
 
 import com.musicband.api.model.MusicBand;
-import com.musicband.api.model.MusicGenre;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -153,10 +152,17 @@ public class MusicBandRepository {
                     predicates.add(predicate);
                 }
             } catch (IllegalArgumentException e) {
+                // КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ: При невалидном фильтре возвращаем предикат, который НИЧЕГО не найдет
                 System.err.println("Filter validation error: " + e.getMessage() + " (filter: " + filterExpression + ")");
-                // Пропускаем невалидный фильтр, но продолжаем обработку остальных
+                // Добавляем предикат, который всегда false - это вернет пустой результат
+                predicates.add(cb.disjunction()); // SQL: WHERE FALSE
+                // Прерываем обработку остальных фильтров, так как один невалидный фильтр должен вернуть пустой результат
+                break;
             } catch (Exception e) {
                 System.err.println("Error creating predicate for filter: " + filterExpression + ", error: " + e.getMessage());
+                // Для непредвиденных ошибок тоже возвращаем пустой результат
+                predicates.add(cb.disjunction());
+                break;
             }
         }
 
@@ -173,7 +179,7 @@ public class MusicBandRepository {
         validateFilterValue(field, operator, value, fieldType);
 
         switch (operator) {
-            case "eq": // Equals
+            case "eq":
                 if (fieldType.isEnum()) {
                     Enum<?> enumValue = parseEnumValue(fieldType, value);
                     return cb.equal(path, enumValue);
@@ -184,11 +190,10 @@ public class MusicBandRepository {
                     LocalDate dateValue = parseDate(value);
                     return cb.equal(path, dateValue);
                 } else {
-                    // Для строк - точное совпадение с учетом регистра
                     return cb.equal(path, value);
                 }
 
-            case "ne": // Not equals
+            case "ne":
                 if (fieldType.isEnum()) {
                     Enum<?> enumValue = parseEnumValue(fieldType, value);
                     return cb.notEqual(path, enumValue);
@@ -202,7 +207,7 @@ public class MusicBandRepository {
                     return cb.notEqual(path, value);
                 }
 
-            case "gt": // Greater than
+            case "gt":
                 if (isNumericType(fieldType)) {
                     return createNumericComparison(cb, path, value, fieldType, "gt");
                 } else if (fieldType == LocalDate.class) {
@@ -212,7 +217,7 @@ public class MusicBandRepository {
                     throw new IllegalArgumentException("Operator 'gt' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
 
-            case "gte": // Greater than or equal
+            case "gte":
                 if (isNumericType(fieldType)) {
                     return createNumericComparison(cb, path, value, fieldType, "gte");
                 } else if (fieldType == LocalDate.class) {
@@ -222,7 +227,7 @@ public class MusicBandRepository {
                     throw new IllegalArgumentException("Operator 'gte' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
 
-            case "lt": // Less than
+            case "lt":
                 if (isNumericType(fieldType)) {
                     return createNumericComparison(cb, path, value, fieldType, "lt");
                 } else if (fieldType == LocalDate.class) {
@@ -232,7 +237,7 @@ public class MusicBandRepository {
                     throw new IllegalArgumentException("Operator 'lt' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
 
-            case "lte": // Less than or equal
+            case "lte":
                 if (isNumericType(fieldType)) {
                     return createNumericComparison(cb, path, value, fieldType, "lte");
                 } else if (fieldType == LocalDate.class) {
@@ -242,7 +247,7 @@ public class MusicBandRepository {
                     throw new IllegalArgumentException("Operator 'lte' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
 
-            case "contains": // Contains substring (case-insensitive)
+            case "contains":
                 if (fieldType == String.class) {
                     return cb.like(cb.lower(path.as(String.class)), "%" + value.toLowerCase() + "%");
                 } else {
@@ -305,12 +310,20 @@ public class MusicBandRepository {
             }
         }
 
-        // Валидация числовых значений
+        // Валидация числовых значений - КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ
         if (isNumericType(fieldType)) {
             try {
+                // Проверяем, что значение является целым числом для Integer/Long
+                if (fieldType == Integer.class || fieldType == int.class ||
+                        fieldType == Long.class || fieldType == long.class) {
+                    // Проверяем, что в значении нет точки (десятичной части)
+                    if (value.contains(".")) {
+                        throw new NumberFormatException("Integer field cannot accept decimal values");
+                    }
+                }
                 parseNumericValue(fieldType, value);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid numeric value '" + value + "' for field '" + field + "'. Expected " + fieldType.getSimpleName());
+                throw new IllegalArgumentException("Invalid numeric value '" + value + "' for field '" + field + "'. Expected " + fieldType.getSimpleName() + " (whole number for Integer fields)");
             }
         }
 
