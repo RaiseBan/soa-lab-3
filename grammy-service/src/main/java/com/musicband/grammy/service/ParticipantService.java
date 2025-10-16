@@ -20,7 +20,7 @@ public class ParticipantService {
     private MainApiClient mainApiClient;
 
     
-    public AddParticipantResponse addParticipantToBand(Integer bandId, @Valid @NotNull Participant participant) {
+    public AddParticipantResponse addParticipantToBand(Integer bandId, @NotNull Participant participant) {
         
         if (!mainApiClient.bandExists(bandId)) {
             throw new IllegalArgumentException("Band with id " + bandId + " not found");

@@ -20,7 +20,7 @@ public class SingleService {
     private MainApiClient mainApiClient;
 
     
-    public AddSingleResponse addSingleToBand(Integer bandId, @Valid @NotNull Single single) {
+    public AddSingleResponse addSingleToBand(Integer bandId, @NotNull Single single) {
         
         if (!mainApiClient.bandExists(bandId)) {
             throw new IllegalArgumentException("Band with id " + bandId + " not found");

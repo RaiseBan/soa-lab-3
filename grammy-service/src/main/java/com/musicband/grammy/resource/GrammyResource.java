@@ -21,14 +21,14 @@ public class GrammyResource {
     @Inject
     private ParticipantService participantService;
 
-    
+
     @POST
     @Path("/{band-id}/singles/add")
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_XML)
     public Response addSingleToBand(
             @PathParam("band-id") Integer bandId,
-            Single single) {
+            @Valid Single single) {  // <-- ДОБАВЬ @Valid ТУТ!
         System.out.println("===addSingleToBand===");
         try {
             if (bandId == null || bandId < 1) {
@@ -64,14 +64,13 @@ public class GrammyResource {
         }
     }
 
-    
     @POST
     @Path("/{band-id}/participants/add")
     @Consumes(MediaType.APPLICATION_XML)
     @Produces(MediaType.APPLICATION_XML)
     public Response addParticipantToBand(
             @PathParam("band-id") Integer bandId,
-            Participant participant) {
+            @Valid Participant participant) {  // <-- ДОБАВЬ @Valid И ТУТ!
 
         try {
             if (bandId == null || bandId < 1) {

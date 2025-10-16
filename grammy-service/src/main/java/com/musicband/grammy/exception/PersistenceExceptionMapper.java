@@ -7,6 +7,10 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import java.sql.SQLException;
 
+/**
+ * ВАРИАНТ БЕЗ HIBERNATE ЗАВИСИМОСТИ
+ * Используйте этот вариант, если не хотите добавлять hibernate-core в pom.xml
+ */
 @Provider
 public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceException> {
 
