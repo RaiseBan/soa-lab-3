@@ -1,6 +1,7 @@
 package com.musicband.api.repository;
 
 import com.musicband.api.model.MusicBand;
+import com.musicband.api.model.MusicGenre;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -8,11 +9,12 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 
 @ApplicationScoped
 @Transactional
@@ -21,25 +23,21 @@ public class MusicBandRepository {
     @PersistenceContext(unitName = "musicBandPU")
     private EntityManager entityManager;
 
-    
     public MusicBand create(MusicBand band) {
         entityManager.persist(band);
         entityManager.flush();
         return band;
     }
 
-    
     public Optional<MusicBand> findById(Integer id) {
         MusicBand band = entityManager.find(MusicBand.class, id);
         return Optional.ofNullable(band);
     }
 
-    
     public MusicBand update(MusicBand band) {
         return entityManager.merge(band);
     }
 
-    
     public boolean delete(Integer id) {
         MusicBand band = entityManager.find(MusicBand.class, id);
         if (band != null) {
@@ -49,19 +47,16 @@ public class MusicBandRepository {
         return false;
     }
 
-    
     public List<MusicBand> findAll(int page, int size, List<String> sortFields, Map<String, String> filters) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<MusicBand> cq = cb.createQuery(MusicBand.class);
         Root<MusicBand> root = cq.from(MusicBand.class);
 
-        
         List<Predicate> predicates = buildPredicates(cb, root, filters);
         if (!predicates.isEmpty()) {
             cq.where(cb.and(predicates.toArray(new Predicate[0])));
         }
 
-        
         List<Order> orders = buildOrders(cb, root, sortFields);
         if (!orders.isEmpty()) {
             cq.orderBy(orders);
@@ -74,7 +69,6 @@ public class MusicBandRepository {
         return query.getResultList();
     }
 
-    
     public long count(Map<String, String> filters) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> cq = cb.createQuery(Long.class);
@@ -82,7 +76,6 @@ public class MusicBandRepository {
 
         cq.select(cb.count(root));
 
-        
         List<Predicate> predicates = buildPredicates(cb, root, filters);
         if (!predicates.isEmpty()) {
             cq.where(cb.and(predicates.toArray(new Predicate[0])));
@@ -91,7 +84,6 @@ public class MusicBandRepository {
         return entityManager.createQuery(cq).getSingleResult();
     }
 
-    
     public Double getAverageParticipants() {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Double> cq = cb.createQuery(Double.class);
@@ -103,6 +95,36 @@ public class MusicBandRepository {
         return result != null ? result : 0.0;
     }
 
+    private List<Order> buildOrders(CriteriaBuilder cb, Root<MusicBand> root, List<String> sortFields) {
+        List<Order> orders = new ArrayList<>();
+
+        if (sortFields == null || sortFields.isEmpty()) {
+            return orders;
+        }
+
+        for (String sortField : sortFields) {
+            String[] parts = sortField.split(",");
+            if (parts.length < 1) {
+                continue;
+            }
+
+            String field = parts[0].trim();
+            String direction = parts.length > 1 ? parts[1].trim().toLowerCase() : "asc";
+
+            try {
+                Path<?> path = getPath(root, field);
+                if ("desc".equals(direction)) {
+                    orders.add(cb.desc(path));
+                } else {
+                    orders.add(cb.asc(path));
+                }
+            } catch (Exception e) {
+                System.err.println("Error creating order for field: " + field + ", error: " + e.getMessage());
+            }
+        }
+
+        return orders;
+    }
 
     private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<MusicBand> root, Map<String, String> filters) {
         List<Predicate> predicates = new ArrayList<>();
@@ -117,7 +139,8 @@ public class MusicBandRepository {
             // Разбираем фильтр: field:operator:value
             String[] parts = filterExpression.split(":", 3);
             if (parts.length != 3) {
-                continue; // Пропускаем невалидные фильтры
+                System.err.println("Invalid filter format: " + filterExpression + " (expected field:operator:value)");
+                continue;
             }
 
             String field = parts[0].trim();
@@ -129,8 +152,10 @@ public class MusicBandRepository {
                 if (predicate != null) {
                     predicates.add(predicate);
                 }
+            } catch (IllegalArgumentException e) {
+                System.err.println("Filter validation error: " + e.getMessage() + " (filter: " + filterExpression + ")");
+                // Пропускаем невалидный фильтр, но продолжаем обработку остальных
             } catch (Exception e) {
-                // Логируем и пропускаем проблемные фильтры
                 System.err.println("Error creating predicate for filter: " + filterExpression + ", error: " + e.getMessage());
             }
         }
@@ -138,94 +163,187 @@ public class MusicBandRepository {
         return predicates;
     }
 
-
     private Predicate createPredicate(CriteriaBuilder cb, Root<MusicBand> root,
                                       String field, String operator, String value) {
 
-        // Получаем путь к полю (поддержка вложенных полей через точку)
         Path<?> path = getPath(root, field);
         Class<?> fieldType = path.getJavaType();
+
+        // Валидация значения перед созданием предиката
+        validateFilterValue(field, operator, value, fieldType);
 
         switch (operator) {
             case "eq": // Equals
                 if (fieldType.isEnum()) {
-                    // Для enum делаем точное совпадение с учетом регистра
-                    return cb.equal(path, parseEnumValue(fieldType, value));
+                    Enum<?> enumValue = parseEnumValue(fieldType, value);
+                    return cb.equal(path, enumValue);
                 } else if (isNumericType(fieldType)) {
-                    return cb.equal(path, parseNumericValue(fieldType, value));
+                    Number numValue = parseNumericValue(fieldType, value);
+                    return cb.equal(path, numValue);
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.equal(path, dateValue);
                 } else {
-                    // Для строк - точное совпадение
+                    // Для строк - точное совпадение с учетом регистра
                     return cb.equal(path, value);
                 }
 
             case "ne": // Not equals
                 if (fieldType.isEnum()) {
-                    return cb.notEqual(path, parseEnumValue(fieldType, value));
+                    Enum<?> enumValue = parseEnumValue(fieldType, value);
+                    return cb.notEqual(path, enumValue);
                 } else if (isNumericType(fieldType)) {
-                    return cb.notEqual(path, parseNumericValue(fieldType, value));
+                    Number numValue = parseNumericValue(fieldType, value);
+                    return cb.notEqual(path, numValue);
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.notEqual(path, dateValue);
                 } else {
                     return cb.notEqual(path, value);
                 }
 
             case "gt": // Greater than
-                if (!isNumericType(fieldType)) {
-                    throw new IllegalArgumentException("Operator 'gt' only works with numeric fields");
+                if (isNumericType(fieldType)) {
+                    return createNumericComparison(cb, path, value, fieldType, "gt");
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.greaterThan(path.as(LocalDate.class), dateValue);
+                } else {
+                    throw new IllegalArgumentException("Operator 'gt' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
-                return cb.gt(path.as(Number.class), parseNumericValue(fieldType, value));
 
             case "gte": // Greater than or equal
-                if (!isNumericType(fieldType)) {
-                    throw new IllegalArgumentException("Operator 'gte' only works with numeric fields");
+                if (isNumericType(fieldType)) {
+                    return createNumericComparison(cb, path, value, fieldType, "gte");
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.greaterThanOrEqualTo(path.as(LocalDate.class), dateValue);
+                } else {
+                    throw new IllegalArgumentException("Operator 'gte' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
-                return cb.ge(path.as(Number.class), parseNumericValue(fieldType, value));
 
             case "lt": // Less than
-                if (!isNumericType(fieldType)) {
-                    throw new IllegalArgumentException("Operator 'lt' only works with numeric fields");
+                if (isNumericType(fieldType)) {
+                    return createNumericComparison(cb, path, value, fieldType, "lt");
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.lessThan(path.as(LocalDate.class), dateValue);
+                } else {
+                    throw new IllegalArgumentException("Operator 'lt' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
-                return cb.lt(path.as(Number.class), parseNumericValue(fieldType, value));
 
             case "lte": // Less than or equal
-                if (!isNumericType(fieldType)) {
-                    throw new IllegalArgumentException("Operator 'lte' only works with numeric fields");
+                if (isNumericType(fieldType)) {
+                    return createNumericComparison(cb, path, value, fieldType, "lte");
+                } else if (fieldType == LocalDate.class) {
+                    LocalDate dateValue = parseDate(value);
+                    return cb.lessThanOrEqualTo(path.as(LocalDate.class), dateValue);
+                } else {
+                    throw new IllegalArgumentException("Operator 'lte' only works with numeric fields and dates. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
-                return cb.le(path.as(Number.class), parseNumericValue(fieldType, value));
 
             case "contains": // Contains substring (case-insensitive)
-                if (fieldType != String.class) {
-                    throw new IllegalArgumentException("Operator 'contains' only works with string fields");
+                if (fieldType == String.class) {
+                    return cb.like(cb.lower(path.as(String.class)), "%" + value.toLowerCase() + "%");
+                } else {
+                    throw new IllegalArgumentException("Operator 'contains' only works with string fields. Field '" + field + "' is " + fieldType.getSimpleName());
                 }
-                return cb.like(cb.lower(path.as(String.class)), "%" + value.toLowerCase() + "%");
 
             default:
-                System.err.println("Unknown operator: " + operator);
-                return null;
+                throw new IllegalArgumentException("Unknown operator: " + operator + ". Supported operators: eq, ne, gt, gte, lt, lte, contains");
         }
     }
 
-    // Вспомогательный метод для получения пути к полю (поддержка вложенных полей)
+    private Predicate createNumericComparison(CriteriaBuilder cb, Path<?> path, String value, Class<?> fieldType, String operator) {
+        if (fieldType == Integer.class || fieldType == int.class) {
+            Integer intValue = Integer.parseInt(value);
+            switch (operator) {
+                case "gt": return cb.gt(path.as(Integer.class), intValue);
+                case "gte": return cb.ge(path.as(Integer.class), intValue);
+                case "lt": return cb.lt(path.as(Integer.class), intValue);
+                case "lte": return cb.le(path.as(Integer.class), intValue);
+            }
+        } else if (fieldType == Long.class || fieldType == long.class) {
+            Long longValue = Long.parseLong(value);
+            switch (operator) {
+                case "gt": return cb.gt(path.as(Long.class), longValue);
+                case "gte": return cb.ge(path.as(Long.class), longValue);
+                case "lt": return cb.lt(path.as(Long.class), longValue);
+                case "lte": return cb.le(path.as(Long.class), longValue);
+            }
+        } else if (fieldType == Double.class || fieldType == double.class) {
+            Double doubleValue = Double.parseDouble(value);
+            switch (operator) {
+                case "gt": return cb.gt(path.as(Double.class), doubleValue);
+                case "gte": return cb.ge(path.as(Double.class), doubleValue);
+                case "lt": return cb.lt(path.as(Double.class), doubleValue);
+                case "lte": return cb.le(path.as(Double.class), doubleValue);
+            }
+        } else if (fieldType == Float.class || fieldType == float.class) {
+            Float floatValue = Float.parseFloat(value);
+            switch (operator) {
+                case "gt": return cb.gt(path.as(Float.class), floatValue);
+                case "gte": return cb.ge(path.as(Float.class), floatValue);
+                case "lt": return cb.lt(path.as(Float.class), floatValue);
+                case "lte": return cb.le(path.as(Float.class), floatValue);
+            }
+        }
+        throw new IllegalArgumentException("Unsupported numeric type: " + fieldType.getSimpleName());
+    }
+
+    private void validateFilterValue(String field, String operator, String value, Class<?> fieldType) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException("Filter value cannot be empty for field '" + field + "'");
+        }
+
+        // Валидация enum значений
+        if (fieldType.isEnum()) {
+            try {
+                parseEnumValue(fieldType, value);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid value '" + value + "' for enum field '" + field + "'. " + e.getMessage());
+            }
+        }
+
+        // Валидация числовых значений
+        if (isNumericType(fieldType)) {
+            try {
+                parseNumericValue(fieldType, value);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid numeric value '" + value + "' for field '" + field + "'. Expected " + fieldType.getSimpleName());
+            }
+        }
+
+        // Валидация дат
+        if (fieldType == LocalDate.class) {
+            try {
+                parseDate(value);
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException("Invalid date value '" + value + "' for field '" + field + "'. Expected format: YYYY-MM-DD");
+            }
+        }
+    }
+
     private Path<?> getPath(Root<MusicBand> root, String field) {
         if (field.contains(".")) {
-            // Вложенное поле, например: coordinates.x или label.sales
-            String[] parts = field.split("\\.", 2);
-            return root.get(parts[0]).get(parts[1]);
+            String[] parts = field.split("\\.");
+            Path<?> path = root;
+            for (String part : parts) {
+                path = path.get(part);
+            }
+            return path;
         } else {
-            // Простое поле
             return root.get(field);
         }
     }
 
     private boolean isNumericType(Class<?> type) {
-        return Number.class.isAssignableFrom(type)
-                || type == int.class
-                || type == long.class
-                || type == double.class
-                || type == float.class
-                || type == short.class
-                || type == byte.class;
+        return type == Integer.class || type == int.class ||
+                type == Long.class || type == long.class ||
+                type == Double.class || type == double.class ||
+                type == Float.class || type == float.class;
     }
 
-    // Парсинг числового значения
     private Number parseNumericValue(Class<?> type, String value) {
         try {
             if (type == Integer.class || type == int.class) {
@@ -236,78 +354,44 @@ public class MusicBandRepository {
                 return Double.parseDouble(value);
             } else if (type == Float.class || type == float.class) {
                 return Float.parseFloat(value);
-            } else {
-                return Double.parseDouble(value); // По умолчанию
             }
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid numeric value: " + value + " for type: " + type.getSimpleName());
+            throw new NumberFormatException("Cannot parse '" + value + "' as " + type.getSimpleName());
         }
+        throw new IllegalArgumentException("Unsupported numeric type: " + type.getSimpleName());
     }
 
-    // Парсинг enum значения
-    private Object parseEnumValue(Class<?> enumType, String value) {
+    @SuppressWarnings("unchecked")
+    private Enum<?> parseEnumValue(Class<?> enumType, String value) {
         try {
-            @SuppressWarnings("unchecked")
-            Class<? extends Enum> enumClass = (Class<? extends Enum>) enumType;
-            // Пытаемся найти точное совпадение с учетом регистра
-            return Enum.valueOf(enumClass, value);
+            // Пробуем точное совпадение (с учетом регистра)
+            return Enum.valueOf((Class<Enum>) enumType, value);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid enum value: '" + value + "' for type: " + enumType.getSimpleName()
-                    + ". Valid values are: " + java.util.Arrays.toString(enumType.getEnumConstants()));
+            // Если не получилось, пробуем без учета регистра
+            for (Object enumConstant : enumType.getEnumConstants()) {
+                if (((Enum<?>) enumConstant).name().equalsIgnoreCase(value)) {
+                    return (Enum<?>) enumConstant;
+                }
+            }
+
+            // Формируем список доступных значений для сообщения об ошибке
+            StringBuilder availableValues = new StringBuilder();
+            for (Object enumConstant : enumType.getEnumConstants()) {
+                if (availableValues.length() > 0) {
+                    availableValues.append(", ");
+                }
+                availableValues.append(((Enum<?>) enumConstant).name());
+            }
+
+            throw new IllegalArgumentException("Available values: " + availableValues.toString());
         }
     }
 
-
-    private Object parseValue(Class<?> type, String value) {
-        if (type == Integer.class || type == int.class) {
-            return Integer.parseInt(value);
-        } else if (type == Long.class || type == long.class) {
-            return Long.parseLong(value);
-        } else if (type == Double.class || type == double.class) {
-            return Double.parseDouble(value);
-        } else if (type.isEnum()) {
-            try {
-                @SuppressWarnings("unchecked")
-                Class<? extends Enum> enumClass = (Class<? extends Enum>) type;
-                return Enum.valueOf(enumClass, value.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid enum value: " + value + " for type: " + type.getSimpleName());
-            }
+    private LocalDate parseDate(String value) {
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException e) {
+            throw new DateTimeParseException("Invalid date format: " + value + ". Expected format: YYYY-MM-DD", value, 0);
         }
-        return value;
-    }
-
-    
-    private List<Order> buildOrders(CriteriaBuilder cb, Root<MusicBand> root, List<String> sortFields) {
-        List<Order> orders = new ArrayList<>();
-
-        if (sortFields == null || sortFields.isEmpty()) {
-            return orders;
-        }
-
-        for (String sortField : sortFields) {
-            String[] parts = sortField.split(",");
-            if (parts.length == 0) continue;
-
-            String field = parts[0];
-            String direction = parts.length > 1 ? parts[1] : "asc";
-
-            
-            Path<?> path;
-            if (field.contains(".")) {
-                String[] fieldParts = field.split("\\.");
-                path = root.get(fieldParts[0]).get(fieldParts[1]);
-            } else {
-                path = root.get(field);
-            }
-
-            if ("desc".equalsIgnoreCase(direction)) {
-                orders.add(cb.desc(path));
-            } else {
-                orders.add(cb.asc(path));
-            }
-        }
-
-        return orders;
     }
 }
