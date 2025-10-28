@@ -82,6 +82,7 @@
     </dependencies>
 
     <build>
+        <finalName>grammy-service-ejb</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

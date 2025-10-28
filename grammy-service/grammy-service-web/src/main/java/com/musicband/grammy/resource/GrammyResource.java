@@ -4,6 +4,7 @@ import com.musicband.grammy.ejb.ParticipantServiceRemote;
 import com.musicband.grammy.ejb.SingleServiceRemote;
 import com.musicband.grammy.model.*;
 
+import com.musicband.grammy.model.Error;
 import jakarta.ejb.EJB;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;

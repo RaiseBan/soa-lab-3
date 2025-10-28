@@ -14,7 +14,7 @@
     <artifactId>grammy-service-web</artifactId>
     <packaging>war</packaging>
 
-    <n>Grammy Service Web</n>
+    <name>Grammy Service Web</name>
     <description>Web module with REST endpoints for Grammy Service</description>
 
     <dependencies>
