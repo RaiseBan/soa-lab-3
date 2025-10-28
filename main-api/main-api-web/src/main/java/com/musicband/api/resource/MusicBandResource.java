@@ -1,6 +1,7 @@
 package com.musicband.api.resource;
 
 import com.musicband.api.model.*;
+import com.musicband.api.model.Error;
 import com.musicband.api.service.MusicBandService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;

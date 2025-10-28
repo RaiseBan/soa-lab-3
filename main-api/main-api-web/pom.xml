@@ -70,6 +70,14 @@
             <artifactId>jaxb-runtime</artifactId>
             <version>3.0.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.musicband</groupId>
+            <artifactId>main-api-ejb</artifactId>
+            <version>${project.version}</version>
+            <type>ejb</type>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -15,11 +15,12 @@ import java.util.Optional;
 
 
 @Stateless
-public class MusicBandService {
+public class MusicBandService implements MusicBandServiceRemote {
 
     @Inject
     private MusicBandRepository repository;
 
+    @Override
     public BandsResponse getAllBands(int page, int size, List<String> sortFields, Map<String, String> filters) {
         List<MusicBand> bands = repository.findAll(page, size, sortFields, filters);
         long totalElements = repository.count(filters);
@@ -28,15 +29,18 @@ public class MusicBandService {
         return new BandsResponse(bands, totalElements, totalPages, page, size);
     }
 
+    @Override
     public Optional<MusicBand> getBandById(Integer id) {
         return repository.findById(id);
     }
 
+    @Override
     public MusicBand createBand(@Valid @NotNull MusicBand band) {
         band.setId(null);
         return repository.create(band);
     }
 
+    @Override
     public Optional<MusicBand> updateBand(Integer id, @Valid @NotNull MusicBand updatedBand) {
         Optional<MusicBand> existing = repository.findById(id);
 
@@ -56,6 +60,7 @@ public class MusicBandService {
         return Optional.of(repository.update(band));
     }
 
+    @Override
     public Optional<MusicBand> patchBand(Integer id, MusicBand patchData) {
         Optional<MusicBand> existing = repository.findById(id);
 
@@ -101,10 +106,12 @@ public class MusicBandService {
         return Optional.of(repository.update(band));
     }
 
+    @Override
     public boolean deleteBand(Integer id) {
         return repository.delete(id);
     }
 
+    @Override
     public AverageParticipantsResponse getAverageParticipants() {
         Double average = repository.getAverageParticipants();
         long totalBands = repository.count(null);
