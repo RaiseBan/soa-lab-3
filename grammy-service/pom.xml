@@ -13,6 +13,11 @@
     <name>Grammy Service</name>
     <description>Grammy service for singles and participants management</description>
 
+    <modules>
+        <module>grammy-service-web</module>
+        <module>grammy-service-ejb</module>
+    </modules>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
