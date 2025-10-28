@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 
 @Embeddable
 @XmlRootElement(name = "coordinates")
@@ -17,8 +19,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Coordinates {
-
+public class Coordinates implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Double x;
 
     @NotNull(message = "Y coordinate cannot be null")

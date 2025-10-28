@@ -2,8 +2,8 @@ package com.musicband.api.resource;
 
 import com.musicband.api.model.*;
 import com.musicband.api.model.Error;
-import com.musicband.api.service.MusicBandService;
-import jakarta.inject.Inject;
+import com.musicband.api.service.MusicBandServiceRemote;
+import jakarta.ejb.EJB;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -14,8 +14,8 @@ import java.util.*;
 @Path("/bands")
 public class MusicBandResource {
 
-    @Inject
-    private MusicBandService service;
+    @EJB
+    private MusicBandServiceRemote service;
 
     @GET
     @Produces(MediaType.APPLICATION_XML)

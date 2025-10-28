@@ -7,16 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 
 @XmlRootElement(name = "averageParticipantsResponse")
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AverageParticipantsResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class AverageParticipantsResponse {
+
     private Double averageParticipants;
     private Integer totalBands;
 }

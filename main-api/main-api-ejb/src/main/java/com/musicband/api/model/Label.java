@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 
 @Embeddable
 @XmlRootElement(name = "label")
@@ -16,8 +18,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Label {
-
+public class Label implements Serializable {
+    private static final long serialVersionUID = 1L;
     @Positive(message = "Sales must be greater than 0")
     private Double sales;
 }

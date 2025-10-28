@@ -12,9 +12,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import org.jboss.ejb3.annotation.Pool;
 
 @Stateless
+@Pool("slsb-strict-max-pool")
 public class MusicBandService implements MusicBandServiceRemote {
 
     @Inject
@@ -35,13 +36,13 @@ public class MusicBandService implements MusicBandServiceRemote {
     }
 
     @Override
-    public MusicBand createBand(@Valid @NotNull MusicBand band) {
+    public MusicBand createBand(MusicBand band) {
         band.setId(null);
         return repository.create(band);
     }
 
     @Override
-    public Optional<MusicBand> updateBand(Integer id, @Valid @NotNull MusicBand updatedBand) {
+    public Optional<MusicBand> updateBand(Integer id, MusicBand updatedBand) {
         Optional<MusicBand> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
