@@ -21,7 +21,7 @@ public class MainApiClient {
 
     public MainApiClient() {
         
-        this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8228/api/v1");
+        this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
         
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
