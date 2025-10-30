@@ -133,7 +133,7 @@ public class MainApiClient {
                     .path("bands")
                     .path(String.valueOf(bandId))
                     .request(MediaType.APPLICATION_XML)
-                    .method("PATCH", Entity.xml(patchXml));
+                    .method("PATCH", Entity.entity(patchXml, MediaType.TEXT_XML));  // TEXT_XML вместо APPLICATION_XML
 
             LOGGER.info("PATCH response status: " + response.getStatus());
             if (response.getStatus() == 200) {

@@ -31,8 +31,8 @@ public class MusicBandService implements MusicBandServiceRemote {
     }
 
     @Override
-    public Optional<MusicBand> getBandById(Integer id) {
-        return repository.findById(id);
+    public MusicBand getBandById(Integer id) {
+        return repository.findById(id).orElse(null);  // Изменено
     }
 
     @Override
@@ -42,15 +42,14 @@ public class MusicBandService implements MusicBandServiceRemote {
     }
 
     @Override
-    public Optional<MusicBand> updateBand(Integer id, MusicBand updatedBand) {
+    public MusicBand updateBand(Integer id, MusicBand updatedBand) {
         Optional<MusicBand> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
-            return Optional.empty();
+            return null;  // Изменено
         }
 
         MusicBand band = existing.get();
-
         band.setName(updatedBand.getName());
         band.setCoordinates(updatedBand.getCoordinates());
         band.setNumberOfParticipants(updatedBand.getNumberOfParticipants());
@@ -58,15 +57,15 @@ public class MusicBandService implements MusicBandServiceRemote {
         band.setGenre(updatedBand.getGenre());
         band.setLabel(updatedBand.getLabel());
 
-        return Optional.of(repository.update(band));
+        return repository.update(band);  // Изменено
     }
 
     @Override
-    public Optional<MusicBand> patchBand(Integer id, MusicBand patchData) {
+    public MusicBand patchBand(Integer id, MusicBand patchData) {
         Optional<MusicBand> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
-            return Optional.empty();
+            return null;  // Изменено
         }
 
         MusicBand band = existing.get();
@@ -104,7 +103,7 @@ public class MusicBandService implements MusicBandServiceRemote {
             band.setLabel(patchData.getLabel());
         }
 
-        return Optional.of(repository.update(band));
+        return repository.update(band);  // Изменено
     }
 
     @Override

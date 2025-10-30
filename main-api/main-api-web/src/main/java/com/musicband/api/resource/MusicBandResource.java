@@ -168,14 +168,14 @@ public class MusicBandResource {
                         "Band ID must be a positive integer");
             }
 
-            Optional<MusicBand> band = service.getBandById(id);
+            MusicBand band = service.getBandById(id);  // Изменено
 
-            if (band.isEmpty()) {
+            if (band == null) {  // Изменено
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }
 
-            return Response.ok(band.get()).build();
+            return Response.ok(band).build();
 
         } catch (Exception e) {
             return createErrorResponse(500, "Internal server error",
@@ -199,14 +199,14 @@ public class MusicBandResource {
                         "Request body cannot be null");
             }
 
-            Optional<MusicBand> updated = service.updateBand(id, band);
+            MusicBand updated = service.updateBand(id, band);  // Изменено
 
-            if (updated.isEmpty()) {
+            if (updated == null) {  // Изменено
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }
 
-            return Response.ok(updated.get()).build();
+            return Response.ok(updated).build();
 
         } catch (IllegalArgumentException e) {
             return createErrorResponse(422, "Validation failed", e.getMessage());
@@ -232,14 +232,14 @@ public class MusicBandResource {
                         "Request body cannot be null");
             }
 
-            Optional<MusicBand> patched = service.patchBand(id, patchData);
+            MusicBand patched = service.patchBand(id, patchData);  // Изменено
 
-            if (patched.isEmpty()) {
+            if (patched == null) {  // Изменено
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }
 
-            return Response.ok(patched.get()).build();
+            return Response.ok(patched).build();
 
         } catch (IllegalArgumentException e) {
             return createErrorResponse(422, "Validation failed", e.getMessage());

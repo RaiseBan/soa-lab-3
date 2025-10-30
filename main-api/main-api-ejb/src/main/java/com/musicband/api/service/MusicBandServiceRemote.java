@@ -9,22 +9,21 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Remote
 public interface MusicBandServiceRemote {
-    
+
     BandsResponse getAllBands(int page, int size, List<String> sortFields, Map<String, String> filters);
-    
-    Optional<MusicBand> getBandById(Integer id);
-    
+
+    MusicBand getBandById(Integer id);  // Изменено: Optional -> nullable
+
     MusicBand createBand(@Valid @NotNull MusicBand band);
-    
-    Optional<MusicBand> updateBand(Integer id, @Valid @NotNull MusicBand updatedBand);
-    
-    Optional<MusicBand> patchBand(Integer id, MusicBand patchData);
-    
+
+    MusicBand updateBand(Integer id, @Valid @NotNull MusicBand updatedBand);  // Изменено
+
+    MusicBand patchBand(Integer id, MusicBand patchData);  // Изменено
+
     boolean deleteBand(Integer id);
-    
+
     AverageParticipantsResponse getAverageParticipants();
 }
