@@ -20,15 +20,40 @@ public class MainApiClient {
     private final Client client;
 
     public MainApiClient() {
-        
         this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
-        
+
         ClientConfig config = new ClientConfig();
         config.connectorProvider(new ApacheConnectorProvider());
-        config.property(ClientProperties.CONNECT_TIMEOUT, 5000); 
-        config.property(ClientProperties.READ_TIMEOUT, 10000);   
-        this.client = ClientBuilder.newClient(config);
+        config.property(ClientProperties.CONNECT_TIMEOUT, 5000);
+        config.property(ClientProperties.READ_TIMEOUT, 10000);
+
+        // ДОБАВЬТЕ ЭТИ СТРОКИ для игнорирования SSL в dev окружении:
+        config.property(ClientProperties.FOLLOW_REDIRECTS, false);
+
+        this.client = ClientBuilder.newBuilder()
+                .withConfig(config)
+                .hostnameVerifier((hostname, session) -> true) // Игнорировать hostname verification
+                .sslContext(createInsecureSSLContext()) // Игнорировать SSL сертификат
+                .build();
+
         LOGGER.info("MainApiClient initialized with URL: " + mainApiUrl);
+    }
+
+    // ДОБАВЬТЕ ЭТОТ МЕТОД:
+    private javax.net.ssl.SSLContext createInsecureSSLContext() {
+        try {
+            javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
+            sslContext.init(null, new javax.net.ssl.TrustManager[]{
+                    new javax.net.ssl.X509TrustManager() {
+                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                        public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[0]; }
+                    }
+            }, new java.security.SecureRandom());
+            return sslContext;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create SSL context", e);
+        }
     }
 
     public boolean bandExists(Integer bandId) {

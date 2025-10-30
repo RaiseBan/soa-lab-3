@@ -6,7 +6,7 @@
              version="3.0">
 
     <persistence-unit name="grammyPU" transaction-type="JTA">
-        <jta-data-source>jdbc/GrammyDS</jta-data-source>
+        <jta-data-source>java:jboss/datasources/GrammyDS</jta-data-source>
 
         <class>com.musicband.grammy.model.Single</class>
         <class>com.musicband.grammy.model.Participant</class>
