@@ -1,14 +1,13 @@
 package com.musicband.grammy.client;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.ClientProperties;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
 import java.util.logging.Logger;
 
@@ -17,29 +16,22 @@ public class MainApiClient {
 
     private static final Logger LOGGER = Logger.getLogger(MainApiClient.class.getName());
     private final String mainApiUrl;
-    private final Client client;
+    private final CloseableHttpClient httpClient;
 
     public MainApiClient() {
         this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
 
-        ClientConfig config = new ClientConfig();
-        config.connectorProvider(new ApacheConnectorProvider());
-        config.property(ClientProperties.CONNECT_TIMEOUT, 5000);
-        config.property(ClientProperties.READ_TIMEOUT, 10000);
-
-        // ДОБАВЬТЕ ЭТИ СТРОКИ для игнорирования SSL в dev окружении:
-        config.property(ClientProperties.FOLLOW_REDIRECTS, false);
-
-        this.client = ClientBuilder.newBuilder()
-                .withConfig(config)
-                .hostnameVerifier((hostname, session) -> true) // Игнорировать hostname verification
-                .sslContext(createInsecureSSLContext()) // Игнорировать SSL сертификат
-                .build();
-
-        LOGGER.info("MainApiClient initialized with URL: " + mainApiUrl);
+        try {
+            this.httpClient = HttpClients.custom()
+                    .setSSLContext(createInsecureSSLContext())
+                    .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                    .build();
+            LOGGER.info("MainApiClient initialized with URL: " + mainApiUrl);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize HTTP client", e);
+        }
     }
 
-    // ДОБАВЬТЕ ЭТОТ МЕТОД:
     private javax.net.ssl.SSLContext createInsecureSSLContext() {
         try {
             javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
@@ -57,69 +49,55 @@ public class MainApiClient {
     }
 
     public boolean bandExists(Integer bandId) {
-        Response response = null;
         try {
             LOGGER.info("Checking if band exists, bandId: " + bandId);
-            response = client.target(mainApiUrl)
-                    .path("bands")
-                    .path(String.valueOf(bandId))
-                    .request(MediaType.APPLICATION_XML)
-                    .get();
-            LOGGER.info("Band exists check response status: " + response.getStatus());
-            return response.getStatus() == 200;
-        } catch (jakarta.ws.rs.ProcessingException e) {
-            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
-            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
+            HttpGet httpGet = new HttpGet(mainApiUrl + "/bands/" + bandId);
+            httpGet.setHeader("Accept", "application/xml");
+
+            org.apache.http.HttpResponse response = httpClient.execute(httpGet);
+            int status = response.getStatusLine().getStatusCode();
+            EntityUtils.consume(response.getEntity());
+
+            LOGGER.info("Band exists check response status: " + status);
+            return status == 200;
         } catch (Exception e) {
-            LOGGER.severe("Error checking band existence for bandId " + bandId + ": " + e.getMessage());
-            throw new RuntimeException("Main API service error: " + e.getMessage());
-        } finally {
-            if (response != null) {
-                response.close();
-                LOGGER.fine("Response closed for bandExists, bandId: " + bandId);
-            }
+            LOGGER.severe("Failed to check band existence: " + e.getMessage());
+            throw new RuntimeException("Main API service unavailable: " + e.getMessage());
         }
     }
 
     public String getBandName(Integer bandId) {
-        Response response = null;
         try {
             LOGGER.info("Fetching band name for bandId: " + bandId);
-            response = client.target(mainApiUrl)
-                    .path("bands")
-                    .path(String.valueOf(bandId))
-                    .request(MediaType.APPLICATION_XML)
-                    .get();
-            LOGGER.info("Get band name response status: " + response.getStatus());
-            if (response.getStatus() == 200) {
-                String xml = response.readEntity(String.class);
+            HttpGet httpGet = new HttpGet(mainApiUrl + "/bands/" + bandId);
+            httpGet.setHeader("Accept", "application/xml");
+
+            org.apache.http.HttpResponse response = httpClient.execute(httpGet);
+            int status = response.getStatusLine().getStatusCode();
+
+            if (status == 200) {
+                String xml = EntityUtils.toString(response.getEntity(), "UTF-8");
                 LOGGER.info("Received XML: " + xml);
-                int nameStart = xml.indexOf("<n>") + 3;
+
+                int nameStart = xml.indexOf("<n>") + 6;
                 int nameEnd = xml.indexOf("</n>");
-                if (nameStart > 2 && nameEnd > nameStart) {
+                if (nameStart > 5 && nameEnd > nameStart) {
                     return xml.substring(nameStart, nameEnd);
                 }
-                LOGGER.warning("Failed to parse band name XML for bandId: " + bandId);
+                LOGGER.warning("Failed to parse band name from XML");
                 return null;
             }
-            LOGGER.warning("Failed to fetch band name for bandId: " + bandId + ", status: " + response.getStatus());
+
+            EntityUtils.consume(response.getEntity());
+            LOGGER.warning("Failed to fetch band name, status: " + status);
             return null;
-        } catch (jakarta.ws.rs.ProcessingException e) {
-            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
-            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
         } catch (Exception e) {
-            LOGGER.severe("Error fetching band name for bandId " + bandId + ": " + e.getMessage());
+            LOGGER.severe("Error fetching band name: " + e.getMessage());
             throw new RuntimeException("Main API service error: " + e.getMessage());
-        } finally {
-            if (response != null) {
-                response.close();
-                LOGGER.fine("Response closed for getBandName, bandId: " + bandId);
-            }
         }
     }
 
     public boolean updateParticipantsCount(Integer bandId, Integer newCount) {
-        Response response = null;
         try {
             String patchXml = String.format(
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
@@ -129,31 +107,20 @@ public class MainApiClient {
                     newCount
             );
             LOGGER.info("Sending PATCH request for bandId: " + bandId + ", body: " + patchXml);
-            response = client.target(mainApiUrl)
-                    .path("bands")
-                    .path(String.valueOf(bandId))
-                    .request(MediaType.APPLICATION_XML)
-                    .method("PATCH", Entity.entity(patchXml, MediaType.TEXT_XML));  // TEXT_XML вместо APPLICATION_XML
 
-            LOGGER.info("PATCH response status: " + response.getStatus());
-            if (response.getStatus() == 200) {
-                return true;
-            } else {
-                String errorBody = response.readEntity(String.class);
-                LOGGER.warning("PATCH request failed for bandId: " + bandId + ", status: " + response.getStatus() + ", body: " + errorBody);
-                return false;
-            }
-        } catch (jakarta.ws.rs.ProcessingException e) {
-            LOGGER.severe("Failed to connect to Main API at " + mainApiUrl + ": " + e.getMessage());
-            throw new RuntimeException("Main API service unavailable: Unable to connect to " + mainApiUrl);
+            HttpPatch httpPatch = new HttpPatch(mainApiUrl + "/bands/" + bandId);
+            httpPatch.setHeader("Content-Type", "application/xml");
+            httpPatch.setEntity(new StringEntity(patchXml, "UTF-8"));
+
+            org.apache.http.HttpResponse response = httpClient.execute(httpPatch);
+            int status = response.getStatusLine().getStatusCode();
+            EntityUtils.consume(response.getEntity());
+
+            LOGGER.info("PATCH response status: " + status);
+            return status == 200;
         } catch (Exception e) {
-            LOGGER.severe("Error in PATCH request for bandId " + bandId + ": " + e.getMessage());
+            LOGGER.severe("Error in PATCH request: " + e.getMessage());
             throw new RuntimeException("Main API service error: " + e.getMessage());
-        } finally {
-            if (response != null) {
-                response.close();
-                LOGGER.fine("Response closed for updateParticipantsCount, bandId: " + bandId);
-            }
         }
     }
 }
