@@ -31,12 +31,12 @@ public class ConsulServiceRegistry {
         try {
             LOGGER.info("Registering service with Consul...");
 
-            // Читаем параметры из system properties или используем значения по умолчанию
+            
             consulPort = Integer.parseInt(System.getProperty("consul.port", "8500"));
 
             servicePort = Integer.parseInt(System.getProperty("service.port", "8228"));
 
-            // Генерируем уникальный ID для каждого экземпляра
+            
             serviceId = System.getProperty("service.id",
                     SERVICE_NAME + "-" + serviceHost + "-" + servicePort);
 
@@ -52,12 +52,12 @@ public class ConsulServiceRegistry {
             newService.setPort(servicePort);
             newService.setTags(Collections.singletonList("music-band-api"));
 
-            // Health check
+            
             NewService.Check check = new NewService.Check();
             check.setHttp("https://" + serviceHost + ":" + servicePort + "/api/v1/bands");
             check.setInterval("10s");
             check.setTimeout("5s");
-            check.setTlsSkipVerify(true);  // Пропускаем проверку SSL сертификата
+            check.setTlsSkipVerify(true);  
             newService.setCheck(check);
 
             consulClient.agentServiceRegister(newService);

@@ -29,10 +29,10 @@ public class GeneralExceptionMapper implements ExceptionMapper<Exception> {
             return Response.status(originalResponse.getStatus()).entity(error).build();
         }
 
-        // Логируем внутреннюю ошибку для разработчиков
+        
         exception.printStackTrace();
 
-        // Возвращаем безопасное сообщение без технических деталей
+        
         Error error = new Error(
                 500,
                 "Internal server error",

@@ -11,13 +11,13 @@ public class SQLExceptionMapper implements ExceptionMapper<SQLException> {
 
     @Override
     public Response toResponse(SQLException exception) {
-        // Логируем для отладки
+        
         exception.printStackTrace();
         
         String message = "Database operation failed";
         String details = "An error occurred while processing your request";
         
-        // Определяем тип ошибки по коду
+        
         if (exception.getMessage() != null) {
             String errorMsg = exception.getMessage().toLowerCase();
             

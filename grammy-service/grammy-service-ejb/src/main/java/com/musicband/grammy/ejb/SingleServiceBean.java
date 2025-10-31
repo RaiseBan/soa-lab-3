@@ -20,21 +20,21 @@ public class SingleServiceBean implements SingleServiceRemote {
 
     @Override
     public AddSingleResponse addSingleToBand(Integer bandId, Single single) {
-        // Проверяем, существует ли группа
+        
         if (!mainApiClient.bandExists(bandId)) {
             throw new IllegalArgumentException("Band with id " + bandId + " not found");
         }
 
-        // Устанавливаем bandId и очищаем id для создания нового single
+        
         single.setBandId(bandId);
         single.setId(null);
         Single created = repository.create(single);
 
-        // Получаем имя группы
+        
         String bandName = mainApiClient.getBandName(bandId);
         System.out.println("BandName: " + bandName);
 
-        // Возвращаем ответ
+        
         return new AddSingleResponse(created, bandId, bandName);
     }
 }

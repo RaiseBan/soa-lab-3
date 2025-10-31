@@ -15,13 +15,13 @@ public interface MusicBandServiceRemote {
 
     BandsResponse getAllBands(int page, int size, List<String> sortFields, Map<String, String> filters);
 
-    MusicBand getBandById(Integer id);  // Изменено: Optional -> nullable
+    MusicBand getBandById(Integer id);  
 
     MusicBand createBand(@Valid @NotNull MusicBand band);
 
-    MusicBand updateBand(Integer id, @Valid @NotNull MusicBand updatedBand);  // Изменено
+    MusicBand updateBand(Integer id, @Valid @NotNull MusicBand updatedBand);  
 
-    MusicBand patchBand(Integer id, MusicBand patchData);  // Изменено
+    MusicBand patchBand(Integer id, MusicBand patchData);  
 
     boolean deleteBand(Integer id);
 

@@ -15,7 +15,7 @@ public class LocalDateTimeAdapter extends XmlAdapter<String, LocalDateTime> {
         if (v == null) {
             return null;
         }
-        // Парсим как Instant и конвертируем в LocalDateTime
+        
         return LocalDateTime.parse(v.replace("Z", ""), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
@@ -24,7 +24,7 @@ public class LocalDateTimeAdapter extends XmlAdapter<String, LocalDateTime> {
         if (v == null) {
             return null;
         }
-        // Обрезаем до секунд (убираем наносекунды) и форматируем с Z
+        
         LocalDateTime truncated = v.withNano(0);
         return truncated.atZone(ZoneOffset.UTC).format(FORMATTER);
     }

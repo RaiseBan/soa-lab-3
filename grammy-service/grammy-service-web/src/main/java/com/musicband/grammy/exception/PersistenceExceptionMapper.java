@@ -12,17 +12,17 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
 
     @Override
     public Response toResponse(PersistenceException exception) {
-        // Получаем корневую причину ошибки
+        
         Throwable cause = exception.getCause();
 
-        // Ищем SQLException в цепочке исключений
+        
         SQLException sqlException = findSQLException(cause);
 
         if (sqlException != null) {
             String sqlState = sqlException.getSQLState();
             String message = sqlException.getMessage();
 
-            // 22001 - String data, right truncation (превышение длины VARCHAR)
+            
             if ("22001".equals(sqlState) ||
                     (message != null && message.toLowerCase().contains("value too long"))) {
                 Error error = new Error(
@@ -33,7 +33,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
                 return Response.status(422).entity(error).build();
             }
 
-            // 23505 - Unique violation
+            
             if ("23505".equals(sqlState) ||
                     (message != null && message.toLowerCase().contains("duplicate"))) {
                 Error error = new Error(
@@ -45,7 +45,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
             }
         }
 
-        // Проверяем сообщение об ошибке напрямую
+        
         String errorMessage = exception.getMessage();
         if (errorMessage != null) {
             String lowerMsg = errorMessage.toLowerCase();
@@ -72,22 +72,20 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
             }
         }
 
-        // Общая ошибка базы данных
+        
         Error error = new Error(
                 500,
                 "Database error",
                 "An error occurred while processing your request"
         );
 
-        // Логируем для отладки
+        
         exception.printStackTrace();
 
         return Response.status(500).entity(error).build();
     }
 
-    /**
-     * Рекурсивно ищет SQLException в цепочке исключений
-     */
+    
     private SQLException findSQLException(Throwable throwable) {
         if (throwable == null) {
             return null;
@@ -97,7 +95,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
             return (SQLException) throwable;
         }
 
-        // Ищем дальше по цепочке
+        
         return findSQLException(throwable.getCause());
     }
 }

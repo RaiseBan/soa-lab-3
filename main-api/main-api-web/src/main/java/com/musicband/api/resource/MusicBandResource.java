@@ -168,9 +168,9 @@ public class MusicBandResource {
                         "Band ID must be a positive integer");
             }
 
-            MusicBand band = service.getBandById(id);  // Изменено
+            MusicBand band = service.getBandById(id);  
 
-            if (band == null) {  // Изменено
+            if (band == null) {  
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }
@@ -199,9 +199,9 @@ public class MusicBandResource {
                         "Request body cannot be null");
             }
 
-            MusicBand updated = service.updateBand(id, band);  // Изменено
+            MusicBand updated = service.updateBand(id, band);  
 
-            if (updated == null) {  // Изменено
+            if (updated == null) {  
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }
@@ -232,9 +232,9 @@ public class MusicBandResource {
                         "Request body cannot be null");
             }
 
-            MusicBand patched = service.patchBand(id, patchData);  // Изменено
+            MusicBand patched = service.patchBand(id, patchData);  
 
-            if (patched == null) {  // Изменено
+            if (patched == null) {  
                 return createErrorResponse(404, "Resource not found",
                         "MusicBand with id " + id + " not found");
             }

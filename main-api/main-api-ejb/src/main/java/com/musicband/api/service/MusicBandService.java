@@ -32,7 +32,7 @@ public class MusicBandService implements MusicBandServiceRemote {
 
     @Override
     public MusicBand getBandById(Integer id) {
-        return repository.findById(id).orElse(null);  // Изменено
+        return repository.findById(id).orElse(null);  
     }
 
     @Override
@@ -46,7 +46,7 @@ public class MusicBandService implements MusicBandServiceRemote {
         Optional<MusicBand> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
-            return null;  // Изменено
+            return null;  
         }
 
         MusicBand band = existing.get();
@@ -57,7 +57,7 @@ public class MusicBandService implements MusicBandServiceRemote {
         band.setGenre(updatedBand.getGenre());
         band.setLabel(updatedBand.getLabel());
 
-        return repository.update(band);  // Изменено
+        return repository.update(band);  
     }
 
     @Override
@@ -65,7 +65,7 @@ public class MusicBandService implements MusicBandServiceRemote {
         Optional<MusicBand> existing = repository.findById(id);
 
         if (existing.isEmpty()) {
-            return null;  // Изменено
+            return null;  
         }
 
         MusicBand band = existing.get();
@@ -103,7 +103,7 @@ public class MusicBandService implements MusicBandServiceRemote {
             band.setLabel(patchData.getLabel());
         }
 
-        return repository.update(band);  // Изменено
+        return repository.update(band);  
     }
 
     @Override

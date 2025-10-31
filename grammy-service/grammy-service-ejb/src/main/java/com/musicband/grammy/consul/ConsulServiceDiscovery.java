@@ -25,9 +25,7 @@ public class ConsulServiceDiscovery {
         LOGGER.info("ConsulServiceDiscovery initialized with Consul at " + consulHost + ":" + consulPort);
     }
 
-    /**
-     * Получить URL одного здорового инстанса сервиса (случайный выбор для балансировки)
-     */
+    
     public String getServiceUrl(String serviceName) {
         try {
             Response<List<HealthService>> healthyServices = 
@@ -40,7 +38,7 @@ public class ConsulServiceDiscovery {
                 return null;
             }
 
-            // Случайный выбор инстанса для простой балансировки
+            
             HealthService selectedService = services.get(random.nextInt(services.size()));
             
             String address = selectedService.getService().getAddress();
@@ -57,9 +55,7 @@ public class ConsulServiceDiscovery {
         }
     }
 
-    /**
-     * Получить все здоровые инстансы сервиса
-     */
+    
     public List<HealthService> getHealthyInstances(String serviceName) {
         try {
             Response<List<HealthService>> response = 
