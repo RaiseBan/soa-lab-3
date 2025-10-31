@@ -1,6 +1,8 @@
 package com.musicband.grammy.client;
 
+import com.musicband.grammy.consul.ConsulServiceDiscovery;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.methods.HttpGet;
@@ -15,21 +17,36 @@ import java.util.logging.Logger;
 public class MainApiClient {
 
     private static final Logger LOGGER = Logger.getLogger(MainApiClient.class.getName());
-    private final String mainApiUrl;
+    private static final String SERVICE_NAME = "main-api";
+    private static final String API_PATH = "/api/v1";
+
     private final CloseableHttpClient httpClient;
 
-    public MainApiClient() {
-        this.mainApiUrl = System.getProperty("main.api.url", "https://localhost:8443/api/v1");
+    @Inject
+    private ConsulServiceDiscovery consulServiceDiscovery;
 
+    public MainApiClient() {
         try {
             this.httpClient = HttpClients.custom()
                     .setSSLContext(createInsecureSSLContext())
                     .setSSLHostnameVerifier(new NoopHostnameVerifier())
                     .build();
-            LOGGER.info("MainApiClient initialized with URL: " + mainApiUrl);
+            LOGGER.info("MainApiClient initialized with Consul service discovery");
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize HTTP client", e);
         }
+    }
+
+    private String getMainApiUrl() {
+        String baseUrl = consulServiceDiscovery.getServiceUrl(SERVICE_NAME);
+
+        if (baseUrl == null) {
+            // Fallback на прямой URL если Consul недоступен
+            LOGGER.warning("Consul unavailable, using fallback URL");
+            baseUrl = System.getProperty("main.api.url", "https://localhost:8443");
+        }
+
+        return baseUrl + API_PATH;
     }
 
     private javax.net.ssl.SSLContext createInsecureSSLContext() {
@@ -50,7 +67,9 @@ public class MainApiClient {
 
     public boolean bandExists(Integer bandId) {
         try {
-            LOGGER.info("Checking if band exists, bandId: " + bandId);
+            String mainApiUrl = getMainApiUrl();
+            LOGGER.info("Checking if band exists, bandId: " + bandId + " at " + mainApiUrl);
+
             HttpGet httpGet = new HttpGet(mainApiUrl + "/bands/" + bandId);
             httpGet.setHeader("Accept", "application/xml");
 
@@ -68,7 +87,9 @@ public class MainApiClient {
 
     public String getBandName(Integer bandId) {
         try {
-            LOGGER.info("Fetching band name for bandId: " + bandId);
+            String mainApiUrl = getMainApiUrl();
+            LOGGER.info("Fetching band name for bandId: " + bandId + " from " + mainApiUrl);
+
             HttpGet httpGet = new HttpGet(mainApiUrl + "/bands/" + bandId);
             httpGet.setHeader("Accept", "application/xml");
 
@@ -79,8 +100,8 @@ public class MainApiClient {
                 String xml = EntityUtils.toString(response.getEntity(), "UTF-8");
                 LOGGER.info("Received XML: " + xml);
 
-                int nameStart = xml.indexOf("<n>") + 6;
-                int nameEnd = xml.indexOf("</n>");
+                int nameStart = xml.indexOf("<name>") + 6;
+                int nameEnd = xml.indexOf("</name>");
                 if (nameStart > 5 && nameEnd > nameStart) {
                     return xml.substring(nameStart, nameEnd);
                 }
@@ -99,6 +120,7 @@ public class MainApiClient {
 
     public boolean updateParticipantsCount(Integer bandId, Integer newCount) {
         try {
+            String mainApiUrl = getMainApiUrl();
             String patchXml = String.format(
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                             "<musicBand>" +
@@ -106,7 +128,7 @@ public class MainApiClient {
                             "</musicBand>",
                     newCount
             );
-            LOGGER.info("Sending PATCH request for bandId: " + bandId + ", body: " + patchXml);
+            LOGGER.info("Sending PATCH request for bandId: " + bandId + " to " + mainApiUrl + ", body: " + patchXml);
 
             HttpPatch httpPatch = new HttpPatch(mainApiUrl + "/bands/" + bandId);
             httpPatch.setHeader("Content-Type", "application/xml");

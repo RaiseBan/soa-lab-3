@@ -5,24 +5,27 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.io.Serializable;
 import java.util.List;
 
 @XmlRootElement(name = "bulkBandsResponse")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class BulkBandsResponse {
-    
+public class BulkBandsResponse implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @XmlElement(name = "musicBand")
     private List<com.musicband.api.model.MusicBand> successful;
-    
+
     @XmlElement(name = "error")
     private List<String> errors;
-    
+
     @XmlElement
     private int totalProcessed;
-    
+
     @XmlElement
     private int successCount;
-    
+
     @XmlElement
     private int errorCount;
 

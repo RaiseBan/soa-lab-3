@@ -5,12 +5,15 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.io.Serializable;
 import java.util.List;
 
 @XmlRootElement(name = "bulkBandsRequest")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class BulkBandsRequest {
-    
+public class BulkBandsRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     @XmlElement(name = "musicBand")
     private List<com.musicband.api.model.MusicBand> bands;
 

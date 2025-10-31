@@ -6,10 +6,11 @@ import com.musicband.grammy.model.Participant;
 import com.musicband.grammy.repository.ParticipantRepository;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import org.jboss.ejb3.annotation.Pool;
 
 @Stateless
+@Pool("slsb-strict-max-pool")
 public class ParticipantServiceBean implements ParticipantServiceRemote {
-
     @Inject
     private ParticipantRepository repository;
 
